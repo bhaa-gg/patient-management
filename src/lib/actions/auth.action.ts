@@ -24,11 +24,13 @@ export const SendOtp = async () => {
 
     if (!updatedUser) return { message: 'Failed to update OTP', status: false }
 
-    await sendOtp(otp, email!)
+    const send = await sendOtp(otp, email!)
+    if (!send || !send.status) {
+      return { message: 'Failed to send OTP', status: false }
+    }
     return { message: 'OTP sent successfully', status: true }
   } catch (error) {
-    console.error('Error updating OTP:', error)
-    throw Error('Error updating OTP')
+    return { message: 'Failed to send OTP ' + error, status: false }
   }
 }
 
@@ -51,8 +53,7 @@ export const verifyOtp = async (otp: string) => {
     }
     return { message: 'OTP verified successfully', status: true }
   } catch (error) {
-    console.error('Error verifying OTP:', error)
-    throw Error('Error verifying OTP')
+    return { message: 'Error verifying OTP ' + error, status: false }
   }
 }
 
@@ -68,14 +69,17 @@ export const sendOtp = async (otp: string, email: string) => {
       process.env.NODE_ENV === 'development'
         ? 'http://localhost:3000'
         : process.env.NEXT_PUBLIC_DOMAIN
-    axios
+    const response = await axios
       .post(`${baseUrl}/api/sendMail`, {
         to: email,
         html: htmlForm,
         subject: 'Your OTP Code',
         message: 'message',
       })
-      .catch((err) => console.log({ errBhaa: err }))
+      .catch((err) => {
+        return { message: 'Failed to send email ' + err, status: false }
+      })
+    return response
   } catch (error) {
     console.error({ errorServer: error })
   }
