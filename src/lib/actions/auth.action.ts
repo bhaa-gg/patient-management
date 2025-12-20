@@ -64,17 +64,16 @@ export const sendOtp = async (otp: string, email: string) => {
       <p>This code is valid for 10 minutes.</p>
     `
 
-    const baseUrl =
-      process.env.NODE_ENV === 'development'
-        ? 'http://localhost:3000'
-        : process.env.NEXT_PUBLIC_DOMAIN
-    const response = await axios
-      .post(`${baseUrl}/api/sendMail`, {
+    const response = await fetch('/api/sendMail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         to: email,
         html: htmlForm,
         subject: 'Your OTP Code',
         message: 'message',
-      })
+      }),
+    })
       .then((res) => {
         return { message: 'Email sent successfully', status: true }
       })
