@@ -26,7 +26,7 @@ export const SendOtp = async () => {
 
     const send = await sendOtp(otp, email!)
     if (!send || !send.status) {
-      return { message: 'Failed to send OTP', status: false }
+      return { message: 'Failed to send OTP' + send.message, status: false }
     }
     return { message: 'OTP sent successfully', status: true }
   } catch (error) {
@@ -51,7 +51,6 @@ export const verifyOtp = async (otp: string) => {
       status: true,
       accessKey: user.AuthOtp,
     }
-    return { message: 'OTP verified successfully', status: true }
   } catch (error) {
     return { message: 'Error verifying OTP ' + error, status: false }
   }
@@ -75,6 +74,9 @@ export const sendOtp = async (otp: string, email: string) => {
         html: htmlForm,
         subject: 'Your OTP Code',
         message: 'message',
+      })
+      .then((res) => {
+        return { message: 'Email sent successfully', status: true }
       })
       .catch((err) => {
         return { message: 'Failed to send email ' + err, status: false }
