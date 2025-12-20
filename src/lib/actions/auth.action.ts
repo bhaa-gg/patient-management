@@ -3,6 +3,7 @@ import { Query } from 'node-appwrite'
 import { DataBase, DATABASE_ID, USERS_COLLECTION_ID } from '../appwrite.config'
 import axios from 'axios'
 import { encryptKey } from '../utils'
+import { headers } from 'next/headers'
 
 export const SendOtp = async () => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString()
@@ -64,7 +65,16 @@ export const sendOtp = async (otp: string, email: string) => {
       <p>This code is valid for 10 minutes.</p>
     `
 
-    const response = await fetch('/api/sendMail', {
+
+
+    
+const headersList = headers()
+const host = (await headersList).get('host')
+const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https'
+
+    const baseUrl = `${protocol}://${host}`
+
+    const response = await fetch(`${baseUrl}/api/sendMail`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
