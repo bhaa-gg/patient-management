@@ -81,6 +81,6 @@ export const sendOtp = async (otp: string, email: string) => {
       })
     return response
   } catch (error) {
-    console.error({ errorServer: error })
+    return { message: 'Failed to send email ' + error, status: false }
   }
 }
