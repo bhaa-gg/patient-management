@@ -68,6 +68,7 @@ const AppointmentForm = ({
           `/patients/${userId}/new-appointment/success?appointmentId=${newAppointment.$id}`,
         )
       }
+      toast.success('Appointment Created Successfully')
     } catch (error) {
       console.log({ error })
       toast.error('Failed to create appointment. Please try again.')
@@ -94,6 +95,7 @@ const AppointmentForm = ({
       if (updatedAppointment) {
         setOpen?.(false)
       }
+      toast.success('Message Send Successfully')
     } catch (error) {
       console.log({ error })
       toast.error('Failed to update appointment. Please try again.')
