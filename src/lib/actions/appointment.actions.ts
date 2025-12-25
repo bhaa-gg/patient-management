@@ -14,6 +14,7 @@ import { revalidatePath } from 'next/cache'
 
 import axios from 'axios'
 import { getUser } from './patinet.actions'
+import { headers } from 'next/headers'
 
 export const createAppointment = async (appointmentData: CreateAppointmentParams) => {
   try {
@@ -40,7 +41,6 @@ export const updateAppointment = async (appointmentData: UpdateAppointmentParams
 
     if (!updateAppointment) throw 'Appointment Not Found :'
 
-  
     await sendEmail(appointmentData)
 
     revalidatePath('/admin')
@@ -161,6 +161,7 @@ export const sendSMSNotificationAx = async (userId: string, content: string) => 
     console.error('An error occurred while sending sms:', error)
   }
 }
+
 export const sendEmail = async (appointmentData: any) => {
   try {
     const htmlForm = `
@@ -212,20 +213,32 @@ export const sendEmail = async (appointmentData: any) => {
     </div>
   </div>
 `
+
+    const headersList = headers()
+    const host = (await headersList).get('host')
+    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https'
+
+    const baseUrl = `${protocol}://${host}`
     const user = await getUser(appointmentData.userId)
-    const baseUrl =
-      process.env.NODE_ENV === 'development'
-        ? 'http://localhost:3000'
-        : process.env.NEXT_PUBLIC_DOMAIN
-    axios
-      .post(`${baseUrl}/api/sendMail`, {
+
+    const response = await fetch(`${baseUrl}/api/sendMail`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         to: user.email,
         html: htmlForm,
         subject: 'Cate Pulse Appointment Notification',
         message: 'message',
+      }),
+    })
+      .then((res) => {
+        return { message: 'Email sent successfully', status: true }
       })
-      .catch((err) => console.log({ errBhaa: err }))
+      .catch((err) => {
+        return { message: 'Failed to send email ' + err, status: false }
+      })
+    return response
   } catch (error) {
-    console.error({ errorServer: error })
+    return { message: 'Failed to send email ' + error, status: false }
   }
 }

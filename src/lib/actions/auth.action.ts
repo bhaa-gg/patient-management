@@ -1,7 +1,6 @@
 'use server'
 import { Query } from 'node-appwrite'
 import { DataBase, DATABASE_ID, USERS_COLLECTION_ID } from '../appwrite.config'
-import axios from 'axios'
 import { encryptKey } from '../utils'
 import { headers } from 'next/headers'
 
