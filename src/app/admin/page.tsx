@@ -1,5 +1,3 @@
-import Image from 'next/image'
-import Link from 'next/link'
 import React from 'react'
 import StatCard from './_components/StatCard'
 import { getRecentAppointmentList } from '@/lib/actions/appointment.actions'
@@ -40,7 +38,7 @@ const page = async () => {
           />
         </section>
 
-        <DataTable columns={columns} data={appointments.documents} />
+        <DataTable  columns={columns} data={appointments.documents} />
       </main>
     </div>
   )

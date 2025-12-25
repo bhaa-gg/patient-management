@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { decryptKey } from '@/lib/utils'
 import { verifyOtp } from '@/lib/actions/auth.action'
@@ -30,7 +30,7 @@ interface DataTableProps<TData, TValue> {
 
 function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
   const router = useRouter()
-
+  const [Loading, setLoading] = useState(true)
   const table = useReactTable({
     data,
     columns,
@@ -48,14 +48,20 @@ function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValu
     const accessKey = decryptKey(storedKey)
     const verifc = await verifyOtp(accessKey)
     if (!verifc.status) router.push('/')
+    else setLoading(false)
   }
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-
     verify()
   }, [typeof window === 'undefined'])
 
+  if (Loading)
+    return (
+      <div className="h-[50vh] flex items-center justify-center ">
+        <Image src="/assets/icons/loader.svg" width={100} height={100} alt="loading" />
+      </div>
+    )
   return (
     <div className=" z-10  overflow-hidden   border-dark-400 shadow-lg rounded-lg  w-full  border">
       <Table className="rounded-lg overflow-hidden ">

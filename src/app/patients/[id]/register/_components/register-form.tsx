@@ -18,67 +18,66 @@ import FileUploader from '@/components/file-uploader'
 import { toast } from 'sonner'
 import { registerPatient } from '@/lib/actions/patinet.actions'
 import { useRouter } from 'next/navigation'
+import { useTransition } from 'react'
 
 const RegisterForm = ({ user }: { user?: User }) => {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const form = useForm<IRegisterFormSchema>({
     resolver: zodResolver(RegisterFormSchema),
     defaultValues: RegisterFormSchemaDefaultValues,
   })
 
   const onSubmit: SubmitHandler<IRegisterFormSchema> = async (values: IRegisterFormSchema) => {
-    let fromData = null
-    if (values.identificationDocument && values.identificationDocument.length > 0) {
-      {
-        const blobFile = new Blob([values.identificationDocument[0]], {
-          type: values.identificationDocument[0].type,
+    startTransition(async () => {
+      let fromData = null
+      if (values.identificationDocument && values.identificationDocument.length > 0) {
+        {
+          const blobFile = new Blob([values.identificationDocument[0]], {
+            type: values.identificationDocument[0].type,
+          })
+          fromData = new FormData()
+          fromData.append('blobFile', blobFile)
+          fromData.append('fileName', values.identificationDocument[0]?.name)
+        }
+      }
+
+      try {
+        const patientData = {
+          userId: user?.$id,
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          birthDate: values.birthDate ? new Date(values.birthDate) : null,
+          gender: values.gender,
+          address: values.address,
+          occupation: values.occupation,
+          emergencyContactName: values.emergencyContactName,
+          emergencyContactNumber: values.emergencyContactNumber,
+          primaryPhysician: values.primaryPhysician,
+          insuranceProvider: values.insuranceProvider,
+          insurancePolicyNumber: values.insurancePolicyNumber,
+          allergies: values.allergies,
+          currentMedication: values.currentMedication,
+          familyMedicalHistory: values.familyMedicalHistory,
+          pastMedicalHistory: values.pastMedicalHistory,
+          identificationType: values.identificationType,
+          identificationNumber: values.identificationNumber,
+          identificationDocument: values.identificationDocument ? fromData : undefined,
+          privacyConsent: values.privacyConsent,
+        }
+
+        const patient = await registerPatient(patientData as any)
+
+        if (patient) router.push(`/patients/${user?.$id}/new-appointment`)
+      } catch (error) {
+        console.log({ error })
+        toast.error(error + '', {
+          position: 'top-center',
         })
-        fromData = new FormData()
-        fromData.append('blobFile', blobFile)
-        fromData.append('fileName', values.identificationDocument[0]?.name)
       }
-    }
-
-    try {
-      const patientData = {
-        userId: user?.$id,
-        name: values.name,
-        email: values.email,
-        phone: values.phone,
-        birthDate: values.birthDate ? new Date(values.birthDate) : null,
-        gender: values.gender,
-        address: values.address,
-        occupation: values.occupation,
-        emergencyContactName: values.emergencyContactName,
-        emergencyContactNumber: values.emergencyContactNumber,
-        primaryPhysician: values.primaryPhysician,
-        insuranceProvider: values.insuranceProvider,
-        insurancePolicyNumber: values.insurancePolicyNumber,
-        allergies: values.allergies,
-        currentMedication: values.currentMedication,
-        familyMedicalHistory: values.familyMedicalHistory,
-        pastMedicalHistory: values.pastMedicalHistory,
-        identificationType: values.identificationType,
-        identificationNumber: values.identificationNumber,
-        identificationDocument: values.identificationDocument ? fromData : undefined,
-        privacyConsent: values.privacyConsent,
-      }
-
-      const patient = await registerPatient(patientData as any)
-
-      if (patient) router.push(`/patients/${user?.$id}/new-appointment`)
-    } catch (error) {
-      console.log({ error })
-      toast.error(error+"" , {
-        position : 'top-center'
-      })
-    }
+    })
   }
-
-  console.log({
-    err: form.formState.errors,
-    err2: form.formState.isValid,
-  })
 
   return (
     <Form {...form}>
@@ -296,11 +295,7 @@ const RegisterForm = ({ user }: { user?: User }) => {
           />
         </section>
 
-        <SubmitButton
-          // disabled={!form.formState.isValid}
-          className="cursor-pointer"
-          isLoading={form.formState.isSubmitting}
-        >
+        <SubmitButton className="cursor-pointer" isLoading={isPending}>
           Submit
         </SubmitButton>
       </form>

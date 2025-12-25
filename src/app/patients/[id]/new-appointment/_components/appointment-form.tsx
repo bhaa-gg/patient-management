@@ -1,5 +1,5 @@
 'use client'
-import React, { useCallback, useEffect } from 'react'
+import React, { useCallback, useEffect, useTransition } from 'react'
 import {
   AppointmentSchema,
   AppointmentSchemaDefaultValues,
@@ -35,6 +35,7 @@ const AppointmentForm = ({
   open,
 }: AppointmentFormProps) => {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const form = useForm<IAppointmentSchema>({
     resolver: zodResolver(AppointmentSchema),
     defaultValues: {
@@ -103,9 +104,11 @@ const AppointmentForm = ({
   }
 
   const handleSubmit: SubmitHandler<IAppointmentSchema> = async (values: IAppointmentSchema) => {
-    const status = type === 'schedule' ? 'scheduled' : type === 'cancel' ? 'cancelled' : 'pending'
-    if (type === 'create') onCreate(values, status)
-    else onUpdate(values, status)
+    startTransition(async () => {
+      const status = type === 'schedule' ? 'scheduled' : type === 'cancel' ? 'cancelled' : 'pending'
+      if (type === 'create') onCreate(values, status)
+      else onUpdate(values, status)
+    })
   }
 
   const buttonLabel = useCallback(() => {
@@ -182,7 +185,7 @@ const AppointmentForm = ({
           />
         )}
         <SubmitButton
-          isLoading={form.formState.isSubmitting}
+          isLoading={isPending}
           className={`${
             type === 'cancel' ? 'bg-red-800' : 'shad-primary-btn'
           } cursor-pointer w-full`}
